@@ -2,7 +2,7 @@
     .macro vector name
     .weak \name
     .set \name, __default_handler
-    RJMP \name
+    JMP \name
     .endm
 
 /* ATmega328p Vector Table */
@@ -10,7 +10,7 @@
     .global __vectors
     .func __vectors
 __vectors:
-    RJMP __Init
+    JMP __Init
     vector INT0_ISR
     vector INT1_ISR
     vector PCINT0_ISR
@@ -42,5 +42,5 @@ __vectors:
     .global __default_handler
     .func __default_handler
 __default_handler:
-    RJMP __default_handler
+    JMP __default_handler
     .endfunc

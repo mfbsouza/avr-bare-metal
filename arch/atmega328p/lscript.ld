@@ -14,21 +14,21 @@ SECTIONS
         *(.text)
         *(.rodata)
         . = ALIGN(2);
-        __end_of_text = .;
+        __text_end = .;
     }> FLASH
 
     .data : {
-        __start_of_data = .;
+        __data_start = .;
         *(.data)
         . = ALIGN(1);
-        __end_of_data = .;
+        __data_end = .;
     }> SRAM AT> FLASH
 
     .bss : {
-        __start_of_bss = .;
+        __bss_start = .;
         *(.bss)
         *(.COMMON)
         . = ALIGN(1);
-        __end_of_bss = .;
+        __bss_end = .;
     }> SRAM
 }

@@ -18,30 +18,34 @@ extern int main (void);
 /* The Init Code */
 
 void __Init (void) {
-
-    extern uint8_t __end_of_text;
-    extern uint8_t __start_of_data;
-    extern uint8_t __end_of_data;
-    extern uint8_t __start_of_bss;
-    extern uint8_t __end_of_bss;
+    
+    // TODO: implement a C function to read bytes from the flash memory (AVR Harvard)
+    
+    /*
+    extern uint8_t __text_end;
+    extern uint8_t __data_start;
+    extern uint8_t __data_end;
+    extern uint8_t __bss_start;
+    extern uint8_t __bss_end;
 
     uint8_t *src, *dest;
     
     // copying .data section to SRAM
     
-    src = &__end_of_text;    // FLASH
-    dest = &__start_of_data; // SRAM
+    src = &__text_end;    // FLASH
+    dest = &__data_start; // SRAM
 
-    while (dest < &__end_of_data) {
+    while (dest < &__data_end) {
         *(dest++) = *(src++);
     }
 
     // initializing the .bss section to zero in the SRAM
 
-    dest = &__start_of_bss;
-    while (dest < &__end_of_bss) {
+    dest = &__bss_start;
+    while (dest < &__bss_end) {
         *(dest++) = 0;
     }
+    */
 
     // call main and hope its working
     main();

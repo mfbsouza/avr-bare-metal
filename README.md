@@ -37,7 +37,7 @@ check the `memory.map` file to check if everything is in other as expected, you 
 
 And diassembly the firmware with:
 
-    avr-objdumb -s bin/firmware
+    avr-objdumb -S bin/firmware
 
 ### 4. Convert ELF to HEX (objcopy)
 
@@ -49,7 +49,7 @@ After the make command the fimware will be in the ELF format, to convert it to i
 
 Plug yout AVR Microcontroller with a bootloader and just:
 
-    make flash PORT=/dev/ttyUSB0
+    make flash PORT=/dev/ttyACM0
 
 change `/dev/ttyUSB0` for the right port in your PC
 
