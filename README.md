@@ -31,27 +31,16 @@ If creating new source files don't forget to add their objects to the `OBJS` var
 
 ### 3. (Optional) Analyse it
 
-check the `memory.map` file to check if everything is in other as expected, you can also do the following command to check the final section headers:
+take a look at the `build/memory.map` and `build/firmware.lst` files to check if everything is in other as expected.
 
-    avr-objdump -h bin/firmware
-
-And diassembly the firmware with:
-
-    avr-objdumb -S bin/firmware
-
-### 4. Convert ELF to HEX (objcopy)
-
-After the make command the fimware will be in the ELF format, to convert it to intel hex just do:
-
-    make objcopy
-
-### 5. Flash it
+### 4. Flash it
 
 Plug yout AVR Microcontroller with a bootloader and just:
 
-    make flash PORT=/dev/ttyACM0
+    ./scripts/flash.sh -P <port> -m <mcu> -c <programmer> -b <path_to_hex>
 
-change `/dev/ttyUSB0` for the right port in your PC
+Ex:.
+    ./scripts/flash.sh -P /dev/ttyACM0 -m atmega328p -c arduino -b build/release/firmware.hex
 
 ## Contributing
 
