@@ -40,6 +40,7 @@ Plug yout AVR Microcontroller with a bootloader and just:
     ./scripts/flash.sh -P <port> -m <mcu> -c <programmer> -b <path_to_hex>
 
 Ex:.
+
     ./scripts/flash.sh -P /dev/ttyACM0 -m atmega328p -c arduino -b build/release/firmware.hex
 
 ## Contributing
