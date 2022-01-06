@@ -1,5 +1,3 @@
-ENTRY (__Init)
-
 MEMORY
 {
     FLASH (RX) : ORIGIN = 0, LENGTH = 32K

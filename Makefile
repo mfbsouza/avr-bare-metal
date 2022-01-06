@@ -1,51 +1,136 @@
-TARGET = firmware
+# Makefile by Matheus Souza (github.com/mfbsouza)
 
-# MCU Settings
-MCU := atmega328p
-PROGRAMMER := arduino
-PORT := /dev/ttyACM0
+# project name
 
-BUILD_DIR = build
-BIN_DIR = bin
-SRC_DIR = src
+PROJECT  := firmware
 
-#SRCS = $(shell find $(SRC_DIR) -name *.c -or -name *.s)
-#OBJS = $(patsubst $(SRC_DIR)/%,$(BUILD_DIR)/%,$(SRCS:%=%.o))
+# paths
 
-OBJS = build/vectors.s.o \
-	build/init.c.o \
-	build/main.c.o
+BUILDDIR := ./build
+DBGDIR   := $(BUILDDIR)/debug
+RELDIR   := $(BUILDDIR)/release
+INCDIR   := ./include
 
-DEPS = $(OBJS:.o=.d)
+# board configuration if there is any (used in firmware programming)
 
-CC = avr-gcc
-CFLAGS = -std=c99 -Wall -O0 -mmcu=$(MCU) -MMD -MP
-LDFLAGS = -nodefaultlibs -nostartfiles -T arch/$(MCU)/lscript.ld -Wl,-Map=memory.map
+include ./arch/atmega328p/config.mk
 
-$(BIN_DIR)/$(TARGET): $(OBJS)
-	@mkdir -p $(BIN_DIR)
-	$(CC) $(OBJS) -o $@ $(LDFLAGS)
+# compiler settings
 
-# assembly code related to the MCU (vector table)
-$(BUILD_DIR)/%.s.o: arch/$(MCU)/%.s
-	@mkdir -p $(BUILD_DIR)
-	$(CC) $(CFLAGS) -c $< -o $@
+CC  := $(PREFIX)gcc
+AS  := $(PREFIX)gcc
+LD  := $(PREFIX)gcc
+CP  := $(PREFIX)objcopy
+OD  := $(PREFIX)objdump
+HEX := $(CP) -O ihex
+BIN := $(CP) -O binary
 
-# c source
-$(BUILD_DIR)/%.c.o: $(SRC_DIR)/%.c
-	@mkdir -p $(BUILD_DIR)
-	$(CC) $(CFLAGS) -c $< -o $@
+ifeq ($(DEBUG),1)
+	BINDIR    := $(DBGDIR)
+	OBJDIR    := $(DBGDIR)/obj
+	ALLCFLAGS += -g -O0 -DDEBUG
+else
+	BINDIR    := $(RELDIR)
+	OBJDIR    := $(RELDIR)/obj
+	ALLCFLAGS += -g -O3
+endif
 
-.PHONY: clean
+# final compilation flags
+
+CFLAGS   := -std=c99 -Wall $(ALLCFLAGS) -MMD -MP
+LDFLAGS  := $(ALLLDFLAGS)
+
+# sources to compile
+
+ALLCSRCS   += $(shell find ./src ./include -type f -name *.c)
+ALLASMSRCS += $(shell find ./src ./include -type f -name *.s)
+
+# sources settings
+
+CSRCS    := $(ALLCSRCS)
+ASMSRCS  := $(ALLASMSRCS)
+SRCPATHS := $(sort $(dir $(CSRCS)) $(dir $(ASMSRCS)))
+
+# objects settings
+
+COBJS   := $(addprefix $(OBJDIR)/, $(notdir $(CSRCS:.c=.o)))
+ASMOBJS := $(addprefix $(OBJDIR)/, $(notdir $(ASMOBJS:.s=.o)))
+OBJS    := $(COBJS) $(ASMOBJS)
+DEPS    := $(OBJS:.o=.d)
+
+# paths where to search for sources
+
+VPATH   = $(SRCPATHS)
+
+# output
+
+OUTFILES := \
+	$(BINDIR)/$(PROJECT).elf \
+	$(BUILDDIR)/$(PROJECT).lst \
+	$(BINDIR)/$(PROJECT).hex \
+	$(BINDIR)/$(PROJECT).bin
+
+# targets
+
+.PHONY: all clean
+
+all: $(OBJDIR) $(BINDIR) $(OBJS) $(OUTFILES)
+
+# targets for the dirs
+
+$(OBJDIR):
+	@mkdir -p $(OBJDIR)
+
+$(BINDIR):
+	@mkdir -p $(BINDIR)
+
+# target for c objects
+
+$(COBJS) : $(OBJDIR)/%.o : %.c
+ifeq ($(VERBOSE),1)
+	$(CC) -c $(CFLAGS) -I $(INCDIR) $< -o $@
+else
+	@echo -e "[CC]\t$<"
+	@$(CC) -c $(CFLAGS) -I $(INCDIR) $< -o $@
+endif
+
+# target for asm objects
+
+$(ASMOBJS) : $(OBJDIR)/%.o : %.s
+ifeq ($(VERBOSE),1)
+	$(AS) -c $(CFLAGS) $< -o $@
+else
+	@echo -e "[AS]\t$<"
+	@$(AS) -c $(CFLAGS) $< -o $@
+endif
+
+# target for ELF file
+
+$(BINDIR)/$(PROJECT).elf: $(OBJS)
+ifeq ($(VERBOSE),1)
+	$(LD) $(LDFLAGS) $(OBJS) -o $@
+else
+	@echo -e "[LD]\t./$@"
+	@$(LD) $(LDFLAGS) $(OBJS) -o $@
+endif
+
+# target for disassembly and sections header info
+
+$(BUILDDIR)/$(PROJECT).lst: $(BINDIR)/$(PROJECT).elf
+ifeq ($(VERBOSE),1)
+	$(OD) -h -S $< > $@
+else
+	@echo -e "[OD]\t./$@"
+	@$(OD) -h -S $< > $@
+endif
+
+# target for architecture if there is any (used in firmware programming)
+
+include ./arch/target.mk
+
 clean:
-	rm -rf $(BUILD_DIR) $(BIN_DIR) memory.map
+	rm -rf $(BUILDDIR)
 
-.PHONY: objcopy
-objcopy:
-	avr-objcopy -O ihex $(BIN_DIR)/$(TARGET) $(BIN_DIR)/$(TARGET).hex
-
-.PHONY: flash
-flash:
-	avrdude -v -p $(MCU) -c $(PROGRAMMER) -P $(PORT) -U flash:w:$(BIN_DIR)/$(TARGET).hex
+# Include the dependency files, should be the last of the makefile
 
 -include $(DEPS)
