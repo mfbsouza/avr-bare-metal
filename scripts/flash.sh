@@ -5,7 +5,7 @@
 port='/dev/ttyACM0'
 mcu='atmega328p'
 programmer='arduino'
-hexfile='build/debug/firmware.hex'
+hexfile='build/release/firmware.hex'
 
 
 while getopts P:m:c:b: flag

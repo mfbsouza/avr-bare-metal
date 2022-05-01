@@ -4,7 +4,7 @@
 #define F_CPU 16000000UL
 #include <util/delay.h>
 
-#include <common/bitmask.h>
+#include "common/bitmask.h"
 
 int main ()
 {
