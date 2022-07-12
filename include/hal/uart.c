@@ -1,6 +1,5 @@
 #include "uart.h"
 
-
 static unsigned char buffer[UART_BUFFER_SIZE];
 static unsigned char head = 0;
 static unsigned char tail = 0;
