@@ -7,27 +7,26 @@ PROJECT  := firmware
 BUILDDIR := ./build
 DBGDIR   := $(BUILDDIR)/debug
 RELDIR   := $(BUILDDIR)/release
-INCDIR   := ./src
+INCDIR   := ./include
 
-# board configuration if there is any (used in firmware programming)
-include ./arch/atmega328p/config.mk
+# compiler and binutils
+PREFIX := avr-
+CC     := $(PREFIX)gcc
+AS     := $(PREFIX)gcc
+CXX    := $(PREFIX)g++
+OD     := $(PREFIX)objdump
 
-# compiler
-CC  := $(PREFIX)gcc
-AS  := $(PREFIX)gcc
-CXX := $(PREFIX)g++
-LD  := $(PREFIX)gcc
-OD  := $(PREFIX)objdump
-
-CP  := $(PREFIX)objcopy
-HEX := $(CP) -O ihex
-BIN := $(CP) -O binary
+CP     := $(PREFIX)objcopy
+HEX    := $(CP) -O ihex
+BIN    := $(CP) -O binary
 
 # flags
-CFLAGS   := -std=c99 -Wall -I $(INCDIR) $(ARCHCFLAGS) -MMD -MP
-CXXLAGS  := -Wall -I $(INCDIR) $(ARCHCFLAGS) -MMD -MP
-ASMFLAGS := -Wall -I $(INCDIR) $(ARCHCFLAGS) -MMD -MP
-LDFLAGS  := $(ARCHLDFLAGS)
+CFLAGS   := -Wall -I $(INCDIR) -MMD -MP
+CXXLAGS  := -Wall -I $(INCDIR) -MMD -MP
+LDFLAGS  :=
+
+# board configuration
+include ./arch/atmega328p/config.mk
 
 ifeq ($(DEBUG),1)
 	BINDIR    := $(DBGDIR)
@@ -37,14 +36,20 @@ ifeq ($(DEBUG),1)
 else
 	BINDIR    := $(RELDIR)
 	OBJDIR    := $(RELDIR)/obj
-	CFLAGS    += -g -O3
-	CXXFLAGS  += -g -O3
+	CFLAGS    += -g -Os
+	CXXFLAGS  += -g -Os
 endif
 
 # sources to compile
-ALLCSRCS   += $(shell find ./src -type f -name *.c)
-ALLCXXSRCS += $(shell find ./src -type f -name *.cpp)
-ALLASMSRCS += $(shell find ./src -type f -name *.s)
+ALLCSRCS   += $(shell find ./src ./include -type f -name *.c)
+ALLCXXSRCS += $(shell find ./src ./include -type f -name *.cpp)
+
+# set the linker to g++ if there is any c++ source code
+ifeq ($(ALLCXXSRCS),)
+	LD := $(PREFIX)gcc
+else
+	LD := $(PREFIX)g++
+endif
 
 # objects settings
 COBJS   := $(addprefix $(OBJDIR)/, $(notdir $(ALLCSRCS:.c=.o)))
@@ -69,7 +74,7 @@ OUTFILES := \
 
 all: $(OBJDIR) $(BINDIR) $(OBJS) $(OUTFILES)
 
-
+# targets for the dirs
 $(OBJDIR):
 	@mkdir -p $(OBJDIR)
 
@@ -81,7 +86,7 @@ $(COBJS) : $(OBJDIR)/%.o : %.c
 ifeq ($(VERBOSE),1)
 	$(CC) -c $(CFLAGS) $< -o $@
 else
-	@echo -e "[CC]\t$<"
+	@echo -n "[CC]\t$<\n"
 	@$(CC) -c $(CFLAGS) $< -o $@
 endif
 
@@ -90,7 +95,7 @@ $(CXXOBJS) : $(OBJDIR)/%.o : %.cpp
 ifeq ($(VERBOSE),1)
 	$(CXX) -c $(CXXFLAGS) $< -o $@
 else
-	@echo -e "[CXX]\t$<"
+	@echo -n "[CXX]\t$<\n"
 	@$(CXX) -c $(CXXFLAGS) $< -o $@
 endif
 
@@ -99,7 +104,7 @@ $(ASMOBJS) : $(OBJDIR)/%.o : %.s
 ifeq ($(VERBOSE),1)
 	$(AS) $(ASMFLAGS) $< -o $@
 else
-	@echo -e "[AS]\t$<"
+	@echo -n "[AS]\t$<\n"
 	@$(AS) $(ASMFLAGS) $< -o $@
 endif
 
@@ -108,7 +113,7 @@ $(BINDIR)/$(PROJECT).elf: $(OBJS)
 ifeq ($(VERBOSE),1)
 	$(LD) $(LDFLAGS) $(OBJS) -o $@
 else
-	@echo -e "[LD]\t./$@"
+	@echo -n "[LD]\t./$@\n"
 	@$(LD) $(LDFLAGS) $(OBJS) -o $@
 endif
 
@@ -117,16 +122,16 @@ $(BUILDDIR)/$(PROJECT).lst: $(BINDIR)/$(PROJECT).elf
 ifeq ($(VERBOSE),1)
 	$(OD) -h -S $< > $@
 else
-	@echo -e "[OD]\t./$@"
+	@echo -n "[OD]\t./$@\n"
 	@$(OD) -h -S $< > $@
 endif
 
-# target for architecture if there is any (used in firmware programming)
+# target for binary firmware
 %.hex: %.elf
 ifeq ($(VERBOSE),1)
 	$(HEX) $< $@
 else
-	@echo -e "[HEX]\t./$@"
+	@echo -n "[HEX]\t./$@\n"
 	@$(HEX) $< $@
 endif
 
@@ -134,10 +139,11 @@ endif
 ifeq ($(VERBOSE),1)
 	$(BIN) $< $@
 else
-	@echo -e "[BIN]\t./$@"
+	@echo -n "[BIN]\t./$@\n"
 	@$(BIN) $< $@
 endif
 
+# target for cleaning files
 clean:
 	rm -rf $(BUILDDIR)
 

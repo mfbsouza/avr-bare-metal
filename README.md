@@ -10,10 +10,10 @@ A getting started with bare-metal programming on a AVR microcontroller using the
 ## Prerequisites
 
 install the toolchain:
-- avr-gcc `(GNU C compiler for AVR)`
-- avr-binutils  `(GNU set of programs to assemble and manipulate binary and object files for the AVR architecture)`
-- make `(GNU Make for building the project files)`
-- avrdude `(manipulate the ROM and EEPROM contents of AVR microcontrollers)`
+- avr-gcc
+- avr-binutils
+- make
+- avrdude
 
 ## Quick Start
 
@@ -26,8 +26,6 @@ install the toolchain:
 write your code in `main.c` and create how many source files you want and compile it with:
 
     make
-
-If creating new source files don't forget to add their objects to the `OBJS` variable in the makefile
 
 ### 3. (Optional) Analyse it
 
