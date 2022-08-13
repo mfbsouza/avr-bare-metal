@@ -7,7 +7,7 @@ PROJECT  := firmware
 BUILDDIR := ./build
 DBGDIR   := $(BUILDDIR)/debug
 RELDIR   := $(BUILDDIR)/release
-INCDIR   := ./include
+INCDIR   := ./src
 
 # compiler and binutils
 PREFIX := avr-
@@ -41,8 +41,8 @@ else
 endif
 
 # sources to compile
-ALLCSRCS   += $(shell find ./src ./include -type f -name *.c)
-ALLCXXSRCS += $(shell find ./src ./include -type f -name *.cpp)
+ALLCSRCS   += $(shell find ./src -type f -name *.c)
+ALLCXXSRCS += $(shell find ./src -type f -name *.cpp)
 
 # set the linker to g++ if there is any c++ source code
 ifeq ($(ALLCXXSRCS),)
