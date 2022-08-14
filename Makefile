@@ -36,8 +36,8 @@ ifeq ($(DEBUG),1)
 else
 	BINDIR    := $(RELDIR)
 	OBJDIR    := $(RELDIR)/obj
-	CFLAGS    += -g -Os
-	CXXFLAGS  += -g -Os
+	CFLAGS    += -g -Os -DNDEBUG
+	CXXFLAGS  += -g -Os -DNDEBUG
 endif
 
 # sources to compile
